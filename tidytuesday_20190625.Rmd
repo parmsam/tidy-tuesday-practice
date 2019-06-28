@@ -14,15 +14,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
 theme_set(theme_light())
-
 ufo_sightings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-25/ufo_sightings.csv")
-
-
 ```
 
 ```{r}
 glimpse(ufo_sightings)
-
 ufo_sightings2 <- ufo_sightings %>% 
   mutate(city_state=paste0(str_to_title(city_area),", ",str_to_upper(state)),
          date_time=mdy_hm(date_time),
@@ -37,26 +33,26 @@ ufo_sightings2 <- ufo_sightings %>%
          day_doc=day(date_documented),
          year_diff = (year_doc - year)
          ) %>% 
-  filter(year>min(year_doc-5))
-
+  filter(year>min(year_doc-5)) #omitt sightings more than 5 years before oldest documentation date
 subT = paste0(min(ufo_sightings2$date_time)," to ", date(max(ufo_sightings2$date_time)))
 ```
 
 
 ```{r}
-
 ufo_sightings2 %>% 
   group_by(year) %>% 
   summarize(med_year_diff= median(year_diff)) %>% 
   #ungroup() %>% filter(year>2000) %>% 
   arrange(-year) %>%
   ggplot(aes(x=year,y=med_year_diff)) + geom_point() + labs(
-    title = "Median Difference Between UFO Sighting and Reporting in Years by Year",
+    title = "Median Difference Between UFO Sighting and Reporting by Year",
     subtitle = subT, 
     y="Median Year Difference",
     x="Year of UFO Sighting"
   )
 ```
+
+
 ```{r}
 ufo_sightings %>% 
   group_by(ufo_shape) %>% 
@@ -65,8 +61,10 @@ ufo_sightings %>%
   arrange(-Count) %>% 
   mutate(ufo_shape=fct_explicit_na(ufo_shape,na_level="missing")) %>% 
   mutate(ufo_shape=(fct_reorder(ufo_shape,Count))) %>%
-  ggplot(aes(x=ufo_shape,y=Count)) + geom_col(fill="grey", color="black") + coord_flip() 
-
+  ggplot(aes(x=ufo_shape,y=Count)) + geom_col(fill="grey", color="black") + coord_flip() +
+  labs(title="Most commonly reported UFO Shapes",
+       x="Number of UFO Sightings",
+       y="UFO Shape")
 ```
 
 ```{r}
@@ -83,6 +81,7 @@ ufo_sightings2 %>%
    y="City/State"
  ) + guides(fill=FALSE)
 ```
+
 ```{r}
 ufo_sightings2 %>% 
   count(date) %>%
@@ -93,11 +92,11 @@ ufo_sightings2 %>%
   ggplot(aes(x=date, y=n)) + 
   geom_col( fill="lightblue", color="black") + 
   coord_flip()+
-  labs(title="Top 2 Most Frequent UFO Sighting Dates by Country",
+  labs(title="Top 20 UFO Sighting Dates among all Countries",
        x="Number of UFO Sightings",
        y="Reported Date of UFO Sighting")
-
 ```
+
 ```{r}
 ufo_sightings2 %>% 
   group_by(date,country) %>% summarize(n=n()) %>% ungroup() %>% group_by(country) %>% top_n(2) %>% 
@@ -110,14 +109,33 @@ ufo_sightings2 %>%
   coord_flip() + 
   facet_wrap(~country, scales="free_y") +
   labs(title="Top 2 Most Frequent UFO Sighting Dates by Country",
-       x="Number of UFO Sightings",
-       y="Reported Date of UFO Sighting")
+       x = "Number of UFO Sightings",
+       y = "Reported Date of UFO Sighting")
+ggsave("myplot.png")
+
+ufo_sightings2 %>% 
+  filter(country=="us") %>%
+  group_by(date,country) %>% summarize(n=n()) %>% ungroup() %>% group_by(country) %>% top_n(10) %>% 
+  ungroup() %>%
+  arrange(-n) %>%
+  mutate(date=as.factor(paste(date)), n) %>%
+  mutate(date=(fct_reorder(date,n))) %>%
+  ggplot(aes(x=date, y=n)) + 
+  geom_col( fill="lightblue", color="black") + 
+  coord_flip() + 
+  facet_wrap(~country, scales="free_y") +
+  labs(title="Top 10 Most Frequent UFO Sighting Dates for USA",
+       x = "Number of UFO Sightings",
+       y = "Reported Date of UFO Sighting")
+ggsave("myplot2.png")
 
 ```
 
 ```{r}
-topCountries <- ufo_sightings2 %>% count(country, sort=TRUE) %>% top_n(20) %>% select(country)
-
+topCountries <- ufo_sightings2 %>% 
+  count(country, sort=TRUE) %>% 
+  top_n(20) %>% 
+  select(country)
 ufo_sightings2 %>% 
   filter(country %in% topCountries$country,
          year>1994) %>%
@@ -128,20 +146,19 @@ ufo_sightings2 %>%
   labs(
     x="Time",
     y="Number of Reported UFO Sightings",
-    color = "Reported UFO Shape",
-    title = "UFO Reports by Year and Country Involved",
+    color = "Country",
+    title = "Number of UFO Reports by Year and Country Involved",
     subtitle= "1994-01-01 to 2014-05-08"
     ) +
    expand_limits(x = 1994)
+ggsave("myplot3.png")
   
 ```
 
 
 ```{r}
 topShapes <- ufo_sightings2 %>% count(ufo_shape, sort=TRUE) %>% top_n(10) %>% select(ufo_shape)
-
 topCountries <- ufo_sightings2 %>% count(country, sort=TRUE) %>% top_n(8) %>% select(country)
-
 ufo_sightings2 %>% 
   filter(ufo_shape %in% topShapes$ufo_shape,
          country %in% topCountries$country,
@@ -158,37 +175,32 @@ ufo_sightings2 %>%
     subtitle= "1994-01-01 to 2014-05-08"
     ) 
 ```
+
+
 ```{r}
-ufo_sightings2 %>% 
-  filter(ufo_shape %in% topShapes$ufo_shape) %>%
-  ggplot(aes(x=ufo_shape, y=encounter_length)) + 
-  geom_boxplot() +
-  labs(
-    x="Time",
-    y="Number of Reported UFO Sightings",
-    color = "Reported UFO Shape",
-    title = "Top 10 Most Reported UFO Shapes Over Time by Major Country Involved",
-    subtitle= "1994-01-01 to 2014-05-08"
-    ) 
+# ufo_sightings2 %>% 
+#   filter(ufo_shape %in% topShapes$ufo_shape) %>%
+#   ggplot(aes(x=ufo_shape, y=encounter_length)) + 
+#   geom_boxplot() +
+#   labs(
+#     x="Time",
+#     y="Number of Reported UFO Sightings",
+#     color = "Reported UFO Shape",
+#     title = "Top 10 Most Reported UFO Shapes Over Time by Major Country Involved",
+#     subtitle= "1994-01-01 to 2014-05-08"
+#     ) 
 
+#on distribution of encounter lengths
 ufo_sightings2 %>% 
-  select(ufo_shape,encounter_length) %>% 
-  group_by(ufo_shape) %>% 
-  mutate(medianLength = median(log(encounter_length))) %>%
-  ungroup() %>%
-  ggplot(aes(x=reorder(ufo_shape, medianLength),y=log(encounter_length),fill=ufo_shape)) + 
-  geom_boxplot(colour='black',size=.4,alpha=.5) + 
-  coord_flip()
-
+  select(encounter_length) %>%
+  ggplot(aes(x=encounter_length)) + geom_histogram() + scale_x_log10()
+           
+# ufo_sightings2 %>% 
+#   select(ufo_shape,encounter_length) %>% 
+#   group_by(ufo_shape) %>% 
+#   mutate(medianLength = median(log(encounter_length))) %>%
+#   ungroup() %>%
+#   ggplot(aes(x=reorder(ufo_shape, medianLength),y=log(encounter_length),fill=ufo_shape)) + 
+#   geom_boxplot(colour='black',size=.4,alpha=.5) + 
+#   coord_flip()
 ```
-
-
-
-
-  
-  
-
-
-
-
-
