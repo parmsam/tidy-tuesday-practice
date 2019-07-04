@@ -1,0 +1,61 @@
+---
+title: "Media Franchise Revenues"
+author: "parmsam"
+date: "July 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r}
+library(tidyverse)
+library(skimr)
+theme_set(theme_light())
+media_rev <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-02/media_franchises.csv")
+```
+
+```{r}
+glimpse(media_rev)
+#media_rev %>% View()
+skim(media_rev)
+
+media_rev %>%
+  group_by(franchise) %>% 
+  summarize(tot_revenue=sum(revenue)) %>%
+  ungroup() %>% 
+  arrange(-tot_revenue) %>% 
+  top_n(10) %>% mutate(franchise=(fct_reorder(franchise,tot_revenue))) %>% 
+  ggplot(aes(x=franchise,y=tot_revenue, fill=)) + geom_col(fill="grey", color="black") + coord_flip() 
+
+```
+```{r}
+df <-media_rev %>% 
+  group_by(franchise,revenue_category) %>%
+  summarize(tot_revenue=sum(revenue)) %>%
+  arrange(franchise) %>% 
+  ungroup() %>%
+  group_by(revenue_category) %>% 
+  top_n(5) %>%
+  ungroup() %>% 
+  arrange(revenue_category,tot_revenue) %>% 
+  mutate(order = row_number())
+
+df %>% ggplot(aes(x=order,y=tot_revenue, order=-tot_revenue)) + 
+  geom_col(fill="grey", color="black") + 
+  facet_wrap(~revenue_category, scales="free", ncol=3, drop=TRUE) +
+  scale_x_continuous(
+  breaks = df$order,
+    labels = df$franchise,
+    expand = c(0,0)
+  )+
+  coord_flip() + 
+  labs(title="Top 5 Media Franchises by Total Grossed Revenue (Billions) and Revenue category", 
+        y="Total Revenue Generated (in Billions)",
+       x="Media Franchise",
+       subtitle= "TidyTuesday; Data Source: Wikipedia")
+ggsave("myplot1_20190702.png", width =15 , height=7)
+```
+
