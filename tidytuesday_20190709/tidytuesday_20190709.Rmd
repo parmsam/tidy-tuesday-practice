@@ -37,11 +37,11 @@ wwc_outcomes %>% filter(str_detect(round,regex("Final"))) %>%
   ggplot(.,aes(x=country, y=n)) + geom_segment( aes(xend=country, y=0, yend=n) , size=1, color="skyblue" ) +
   geom_point( color="orange", size=4) + coord_flip() +
     labs(
-    title="Appearances in Womens Soccer Finals (Semi, Quarter, or Grand Finals)",
+    title="Appearances in Womens Soccer Finals (Semi, Quarter, or Grand Finals) 1991-2019",
     y="Number of Appearances",
     x="Country"
   )
-ggsave("myplot1_20190709.png", width =15 , height=7)
+ggsave("myplot1_20190709.png", width =10 , height=5)
 ```
 
 
@@ -56,12 +56,12 @@ wwc_outcomes %>% filter(str_detect(round,regex("Final"))) %>%
   mutate(country=as.factor(country)) %>% mutate(country=fct_rev(country)) %>% 
   ggplot(.,aes(x=country, y=n, fill=year)) + geom_col() +coord_flip() + 
   labs(
-    title="Appearances in Womens Soccer Finals (Semi, Quarter, or Grand Finals)",
+    title="Appearances in Womens Soccer Finals (Semi, Quarter, or Grand Finals)  1991-2019",
     y="Number of Appearances",
     x="Country"
   ) + geom_text(aes(label=win_status), size = 3, position =position_stack(0.5))
 
-ggsave("myplot2_20190709.png", width =15 , height=7)
+ggsave("myplot2_20190709.png", width =10 , height=5)
 ```
 
 
