@@ -6,11 +6,7 @@ output: html_document
 
 # TidyTuesday
 
-Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
-Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
-While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
-The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
-As such we encourage everyone of all skills to participate!
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event! Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data. While the dataset will be "tamed", it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format. The goal of TidyTuesday is to apply your R skills, get feedback, explore other's work, and connect with the greater #RStats community! As such we encourage everyone of all skills to participate!
 
 ```{r setup, include=FALSE}
 
@@ -18,7 +14,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(tidytuesdayR)
+# devtools::install_github("r-lib/scales")
 library(scales)
+library(showtext)
 ```
 
 # Load the weekly Data
@@ -31,18 +29,15 @@ tt <- tt_load("2022-03-29")
 
 ```
 
-
 # Readme
 
-Take a look at the readme for the weekly data to get insight on the dataset.
-This includes a data dictionary, source, and a link to an article on the data.
+Take a look at the readme for the weekly data to get insight on the dataset. This includes a data dictionary, source, and a link to an article on the data.
 
 ```{r Readme, eval = interactive()}
 
 tt
 
 ```
-
 
 # Glimpse Data
 
@@ -77,7 +72,13 @@ summarize_revs <- function(df){
   summarize(total_rev_menwomen = sum(total_rev_menwomen, na.rm = TRUE), 
             total_exp_menwomen = sum(total_exp_menwomen, na.rm = TRUE),
             net_profit = sum(net_profit, na.rm = TRUE),
+            
+            rev_men = sum(rev_men, na.rm = TRUE),
+            exp_men = sum(exp_men, na.rm = TRUE),
             m_net_profit = sum(m_net_profit, na.rm = TRUE),
+            
+            rev_women = sum(rev_women, na.rm = TRUE),
+            exp_women = sum(exp_women, na.rm = TRUE),
             f_net_profit = sum(f_net_profit, na.rm = TRUE)
             )
 }
@@ -112,29 +113,73 @@ profitable_schools <-
   mutate( across(is.numeric, scales::dollar))
 
 # profitable sports may offset unprofitable sports 
-
 ```
-
 
 # Visualize
 
 Using your processed dataset, create your unique visualization.
 
 ```{r Visualize}
+theme_set(theme_bw())
 
-
+# define labels helper function for ggplots
+labels_set <- function(x_lab, y_lab,
+                       title_lab, subtitle_lab, caption_lab){
+  labs(x = x_lab, y = y_lab, 
+       title = title_lab, 
+       subtitle = subtitle_lab, 
+       caption = caption_lab)
+}
   
+# scatter plots for 2019 where school has men and women sports programs
+
+# using development version of scales package to get new numeric formatter for label_dollar()
+
+school_net_profit_2019 <- school_net_profit %>% 
+  filter(year==2019) 
+## expenditure female vs male 
+f_m_expenditures <- school_net_profit_2019 %>% 
+  filter( exp_men != 0, exp_women != 0) %>%
+  ggplot(aes(exp_men, exp_women)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(color="#799d2d",size = 1.25) +
+  scale_x_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) + 
+  scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
+  labels_set("Expenditure for Men (USD)", 
+             "Expenditure for Women (USD)",
+             "Men to Women Comparision of Total Expenditure Across All Sports Programs in the USA",
+             "Academic year 2019-2020",
+             "@parmsam")
+
+## revenue female vs male
+f_m_revenues <- school_net_profit_2019 %>% 
+  filter( rev_men != 0, rev_women != 0) %>%
+  ggplot(aes(rev_men, rev_women)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(color="#799d2d", size = 1.25) +
+  scale_x_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) + 
+  scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
+  labels_set("Revenue for Men (USD)", 
+             "Revenue for Women (USD)",
+             "Men to Women Comparision of Total Revenue Across All Sports Programs in the USA",
+             "Academic year 2019-2020",
+             "@parmsam")
+
 ```
 
 # Save Image
 
-Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter!
 
 ```{r}
 
 # This will save your most recent plot
-ggsave(
-  filename = "My TidyTuesday Plot.png",
+ggsave(plot = f_m_revenues,
+  filename = "images/2022_03_29_revenues_scatter_plot.png", width = 10,
+  device = "png")
+
+ggsave(plot = f_m_expenditures,
+  filename = "images/2022_03_29_expenditures_scatter_plot.png", width = 10,
   device = "png")
 
 ```
