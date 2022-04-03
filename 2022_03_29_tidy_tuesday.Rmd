@@ -151,7 +151,7 @@ f_m_expenditures <- school_net_profit_2019 %>%
              "Expenditure for Women (USD)",
              "Men to Women Comparision of Total Expenditures Across College Sports Programs in the USA",
              "Academic year 2019-2020",
-             "@parmsam | Data source: Equity in Athletics Data Analysis",
+             "Data source: Equity in Athletics Data Analysis | @parmsam",
              "Graph A")
 
 ## revenue female vs male
@@ -166,7 +166,7 @@ f_m_revenues <- school_net_profit_2019 %>%
              "Revenue for Women (USD)",
              "Men to Women Comparision of Total Revenue Across College Sports Programs in the USA",
              "Academic year 2019-2020",
-             "@parmsam | Data source: Equity in Athletics Data Analysis",
+             "Data source: Equity in Athletics Data Analysis | Graphic: @parmsam_",
              "Graph B")
 
 f_m_expenditures
