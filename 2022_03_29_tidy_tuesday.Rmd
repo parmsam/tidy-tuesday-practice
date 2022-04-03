@@ -124,11 +124,13 @@ theme_set(theme_bw())
 
 # define labels helper function for ggplots
 labels_set <- function(x_lab, y_lab,
-                       title_lab, subtitle_lab, caption_lab){
+                       title_lab, subtitle_lab, caption_lab, 
+                       tag_lab){
   labs(x = x_lab, y = y_lab, 
        title = title_lab, 
        subtitle = subtitle_lab, 
-       caption = caption_lab)
+       caption = caption_lab,
+       tag = tag_lab)
 }
   
 # scatter plots for 2019 where school has men and women sports programs
@@ -147,9 +149,10 @@ f_m_expenditures <- school_net_profit_2019 %>%
   scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
   labels_set("Expenditure for Men (USD)", 
              "Expenditure for Women (USD)",
-             "Men to Women Comparision of Total Expenditure Across All Sports Programs in the USA",
+             "Men to Women Comparision of Total Expenditures Across College Sports Programs in the USA",
              "Academic year 2019-2020",
-             "@parmsam")
+             "@parmsam | Data source: Equity in Athletics Data Analysis",
+             "Graph A")
 
 ## revenue female vs male
 f_m_revenues <- school_net_profit_2019 %>% 
@@ -161,10 +164,13 @@ f_m_revenues <- school_net_profit_2019 %>%
   scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
   labels_set("Revenue for Men (USD)", 
              "Revenue for Women (USD)",
-             "Men to Women Comparision of Total Revenue Across All Sports Programs in the USA",
+             "Men to Women Comparision of Total Revenue Across College Sports Programs in the USA",
              "Academic year 2019-2020",
-             "@parmsam")
+             "@parmsam | Data source: Equity in Athletics Data Analysis",
+             "Graph B")
 
+f_m_expenditures
+f_m_revenues
 ```
 
 # Save Image
