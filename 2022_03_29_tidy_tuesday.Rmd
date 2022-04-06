@@ -198,8 +198,7 @@ f_m_expenditures_anim <- school_net_profit %>%
     lineheight = 0.85,
     family = "IBM Plex Sans",
   ) +
-  transition_time(year) +
-  ease_aes('linear')
+  transition_time(year)
 
 f_m_revenues_anim <- school_net_profit %>%
     filter( rev_men != 0, rev_women != 0) %>%
@@ -222,8 +221,7 @@ f_m_revenues_anim <- school_net_profit %>%
     lineheight = 0.85,
     family = "IBM Plex Sans",
   ) +
-  transition_time(year) +
-  ease_aes('linear')
+  transition_time(year)
  
 ```
 
