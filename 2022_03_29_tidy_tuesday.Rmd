@@ -14,9 +14,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(tidytuesdayR)
-# devtools::install_github("r-lib/scales")
+#using dev version of scales to get scales::cut_long_scale()
+devtools::install_github("r-lib/scales")
 library(scales)
 library(showtext)
+#ensure gifski is installed prior to using gganimate to get gif saving working
+library(gifski)
+library(gganimate)
 ```
 
 # Load the weekly Data
@@ -97,8 +101,8 @@ year_by_year_revenues <-
 # get net profit for each school's entire sport program
 school_net_profit <- 
   sports %>% 
-  group_by(institution_name, year, city_txt, state_cd, zip_text) %>%
-  summarize_revs()
+  group_by(unitid, institution_name, year, city_txt, state_cd, zip_text) %>%
+  summarize_revs() %>% ungroup()
 
 unprofitable_schools <- 
   school_net_profit %>% 
@@ -171,6 +175,56 @@ f_m_revenues <- school_net_profit_2019 %>%
 
 f_m_expenditures
 f_m_revenues
+
+## year to year animations
+f_m_expenditures_anim <- school_net_profit %>%
+  filter( exp_men != 0, exp_women != 0) %>%
+  ggplot(aes(exp_men, exp_women)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(color="#799d2d",size = 1.25) +
+  scale_x_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) + 
+  scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
+  labels_set("Expenditure for Men (USD)", 
+             "Expenditure for Women (USD)",
+             "Men to Women Comparision of Total Expenditures Across College Sports Programs in the USA",
+             "Academic year {floor(frame_time)}",
+             "Data source: Equity in Athletics Data Analysis | @parmsam",
+             "Graph C") +
+  geom_text(
+    aes(label = if_else(unitid == 151351, institution_name, "")),
+    hjust = "right",
+    vjust = "bottom",
+    nudge_y = 0.05,
+    lineheight = 0.85,
+    family = "IBM Plex Sans",
+  ) +
+  transition_time(year) +
+  ease_aes('linear')
+
+f_m_revenues_anim <- school_net_profit %>%
+    filter( rev_men != 0, rev_women != 0) %>%
+  ggplot(aes(rev_men, rev_women)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(color="#799d2d", size = 1.25) +
+  scale_x_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) + 
+  scale_y_log10(labels = label_dollar(scale_cut = scales::cut_long_scale())) +
+  labels_set("Revenue for Men (USD)", 
+             "Revenue for Women (USD)",
+             "Men to Women Comparision of Total Revenue Across College Sports Programs in the USA",
+             "Academic year {floor(frame_time)}",
+             "Data source: Equity in Athletics Data Analysis | Graphic: @parmsam_",
+             "Graph D") +
+  geom_text(
+    aes(label = if_else(unitid == 151351, institution_name, "")),
+    hjust = "right",
+    vjust = "bottom",
+    nudge_y = 0.05,
+    lineheight = 0.85,
+    family = "IBM Plex Sans",
+  ) +
+  transition_time(year) +
+  ease_aes('linear')
+ 
 ```
 
 # Save Image
@@ -180,12 +234,18 @@ Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your p
 ```{r}
 
 # This will save your most recent plot
+ggsave(plot = f_m_expenditures,
+  filename = "images/2022_03_29_expenditures_scatter_plot.png", width = 10,
+  device = "png")
+
 ggsave(plot = f_m_revenues,
   filename = "images/2022_03_29_revenues_scatter_plot.png", width = 10,
   device = "png")
 
-ggsave(plot = f_m_expenditures,
-  filename = "images/2022_03_29_expenditures_scatter_plot.png", width = 10,
-  device = "png")
+animate(f_m_expenditures_anim,  nframes = 100, fps = 8, width = 1200, height = 1000, end_pause = 15, start_pause = 15)
+anim_save(filename = "images/2022_03_29_expenditures_scatter_plot_by_year.gif", animation = last_animation() )
+
+animate(f_m_revenues_anim,  nframes = 100, fps = 8, width = 1200, height = 1000, end_pause = 15, start_pause = 15)
+anim_save(filename = "images/2022_03_29_revenues_scatter_plot_by_year.gif", animation = last_animation() )
 
 ```
